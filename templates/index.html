@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escáner Bluetooth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f0f4f8;
+        color: #334155;
+      }
+      .container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out,
+          transform 0.1s ease-in-out;
+      }
+      .btn-blue {
+        background-color: #3b82f6;
+        color: white;
+      }
+      .btn-blue:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+      .btn-red {
+        background-color: #ef4444;
+        color: white;
+      }
+      .btn-red:hover {
+        background-color: #dc2626;
+        transform: translateY(-1px);
+      }
+      .table-header th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        background-color: #e2e8f0;
+        border-bottom: 1px solid #cbd5e1;
+        font-weight: 700;
+        color: #475569;
+      }
+      .table-row td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .table-row:last-child td {
+        border-bottom: none;
+      }
+      .table-row:nth-child(even) {
+        background-color: #f8fafc;
+      }
+      .status-message {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        text-align: center;
+      }
+      .status-success {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+      .status-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      .status-info {
+        background-color: #e0f2fe;
+        color: #0c4a6e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">
+        Escáner de Dispositivos Bluetooth
+      </h1>
+
+      <div class="flex justify-center space-x-4 mb-6">
+        <button id="startButton" class="btn btn-blue">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 inline-block mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Iniciar Escaneo
+        </button>
+        <button id="stopButton" class="btn btn-red">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 inline-block mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7V5h4v2H8zm0 4v2h4v-2H8z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Detener Escaneo
+        </button>
+      </div>
+
+      <div id="statusMessage" class="status-message hidden"></div>
+
+      <div class="bg-gray-50 rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr class="table-header">
+              <th class="rounded-tl-lg">Nombre del Dispositivo</th>
+              <th>ID de Fabricante</th>
+              <th>Nombre del Fabricante</th>
+              <th class="rounded-tr-lg">Datos del Fabricante (Hex)</th>
+            </tr>
+          </thead>
+          <tbody id="deviceTableBody" class="divide-y divide-gray-100">
+            <!-- Devices will be inserted here by JavaScript -->
+            <tr>
+              <td colspan="4" class="text-center py-4 text-gray-500">
+                No hay dispositivos detectados aún.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const startButton = document.getElementById("startButton");
+      const stopButton = document.getElementById("stopButton");
+      const deviceTableBody = document.getElementById("deviceTableBody");
+      const statusMessageDiv = document.getElementById("statusMessage");
+      let updateInterval; // To store the interval ID for clearing later
+
+      // Function to display status messages
+      function showStatus(message, type) {
+        statusMessageDiv.textContent = message;
+        statusMessageDiv.className = `status-message ${type}`;
+        statusMessageDiv.classList.remove("hidden");
+      }
+
+      // Function to hide status messages
+      function hideStatus() {
+        statusMessageDiv.classList.add("hidden");
+      }
+
+      // Function to fetch devices and update the table
+      async function fetchDevices() {
+        try {
+          const response = await fetch("/get_devices");
+          const data = await response.json();
+
+          deviceTableBody.innerHTML = ""; // Clear existing rows
+
+          if (data.devices.length === 0) {
+            deviceTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-gray-500">No hay dispositivos detectados aún.</td>
+                        </tr>
+                    `;
+          } else {
+            data.devices.forEach((device) => {
+              const row = document.createElement("tr");
+              row.className = "table-row";
+              row.innerHTML = `
+                            <td>${device.name || "N/A"}</td>
+                            <td>${device.manufacturer_id || "N/A"}</td>
+                            <td>${device.manufacturer_name || "N/A"}</td>
+                            <td>${device.manufacturer_data || "N/A"}</td>
+                        `;
+              deviceTableBody.appendChild(row);
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching devices:", error);
+          showStatus("Error al cargar dispositivos.", "status-error");
+        }
+      }
+
+      // Event listener for Start button
+      startButton.addEventListener("click", async () => {
+        hideStatus();
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        showStatus("Iniciando escaneo...", "status-info");
+        try {
+          const response = await fetch("/start_scan", { method: "POST" });
+          const data = await response.json();
+          if (data.status === "success") {
+            showStatus(data.message, "status-success");
+            // Start polling for new devices every 2 seconds
+            updateInterval = setInterval(fetchDevices, 4000);
+          } else {
+            showStatus(data.message, "status-error");
+            startButton.disabled = false; // Re-enable if failed to start
+            stopButton.disabled = true;
+          }
+        } catch (error) {
+          console.error("Error starting scan:", error);
+          showStatus(
+            "Error de conexión al iniciar el escaneo.",
+            "status-error"
+          );
+          startButton.disabled = false;
+          stopButton.disabled = true;
+        }
+      });
+
+      // Event listener for Stop button
+      stopButton.addEventListener("click", async () => {
+        hideStatus();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        showStatus("Deteniendo escaneo...", "status-info");
+        clearInterval(updateInterval); // Stop polling
+        try {
+          const response = await fetch("/stop_scan", { method: "POST" });
+          const data = await response.json();
+          if (data.status === "success") {
+            showStatus(data.message, "status-success");
+          } else {
+            showStatus(data.message, "status-error");
+          }
+        } catch (error) {
+          console.error("Error stopping scan:", error);
+          showStatus(
+            "Error de conexión al detener el escaneo.",
+            "status-error"
+          );
+        }
+      });
+
+      // Initial fetch when the page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        stopButton.disabled = true; // Stop button disabled initially
+        fetchDevices(); // Load any previously discovered devices if app was still running
+      });
+    </script>
+  </body>
+</html>

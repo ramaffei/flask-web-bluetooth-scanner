@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    privileged: true # Grant privileged access for Bluetooth (use with caution)
+    network_mode: "host" # Use host network for direct Bluetooth access
+    volumes:
+      - /run/dbus:/run/dbus:ro
+      - /dev:/dev
+    command: bash -c "bluetoothctl power on && hypercorn app:asgi_app --bind 0.0.0.0:8000"
