@@ -31,7 +31,7 @@ async def stop_scan() -> dict:
     return {"status": "success", "message": "Escaneo detenido."}, 202
 
 
-@app.route("/get_devices", methods=["GET"])
+@app.route("/devices", methods=["GET"])
 def get_devices_list() -> dict:
     return {"devices": ble_scanner.get_devices()}, 200
 

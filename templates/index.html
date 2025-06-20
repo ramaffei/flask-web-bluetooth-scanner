@@ -167,7 +167,7 @@
       // Function to fetch devices and update the table
       async function fetchDevices() {
         try {
-          const response = await fetch("/get_devices");
+          const response = await fetch("/devices");
           const data = await response.json();
 
           deviceTableBody.innerHTML = ""; // Clear existing rows
