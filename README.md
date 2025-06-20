@@ -55,7 +55,7 @@ docker compose up app
 ## Endpoints principales
 
 - **/**  
-  Interfaz web principal donde se listan los dispositivos bluetooth.
+  Interfaz web principal donde se listan los dispositivos bluetooth. Se actualizan los equipos encontrados cada 10 segundos.
 
 - **/start_scan**  
   Inicia el escaneo en segundo plano.

@@ -208,8 +208,8 @@
           const data = await response.json();
           if (data.status === "success") {
             showStatus(data.message, "status-success");
-            // Start polling for new devices every 2 seconds
-            updateInterval = setInterval(fetchDevices, 4000);
+            // Start polling for new devices every 10 seconds
+            updateInterval = setInterval(fetchDevices, 10000);
           } else {
             showStatus(data.message, "status-error");
             startButton.disabled = false; // Re-enable if failed to start
