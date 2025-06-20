@@ -31,14 +31,19 @@ Aplicación web que permite escanear dispositivos Bluetooth desde una interfaz w
    ```
 
 ## Formas de Ejecucion
-1. Ejecutar la app:
+1. Ejecutar la app (dentro del entorno):
    ```bash
    python app.py
    ```
 
-2. Ejecutar con Hypercorn:
+2. Ejecutar con Hypercorn (dentro del entorno):
    ```bash
    hypercorn app:asgi_app
+   ```
+
+2. Ejecutar con Hypercorn:
+   ```bash
+   uv run app
    ```
 
 ### 3. Instalacion y Ejecucion usando Docker Compose
