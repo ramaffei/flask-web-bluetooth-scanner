@@ -61,7 +61,7 @@ docker compose up app
   Inicia el escaneo en segundo plano.
 
 - **/stop_scan**  
-  Inicia el escaneo en segundo plano.
+  Detiene el escaneo en segundo plano.
 
 - **/devices**  
   Devuelve la lista de dispositivos encontrados en formato JSON.
